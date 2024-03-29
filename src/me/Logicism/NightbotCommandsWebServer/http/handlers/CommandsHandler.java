@@ -36,7 +36,7 @@ public class CommandsHandler implements HttpHandler {
         Map<String, String> queryMap = TextUtils.queryToMap(exchange.getRequestURI().getQuery());
 
         if (queryMap.containsKey("moderator") && queryMap.containsKey("channel")) {
-            if (exchange.getRequestURI().toString().equals("/commands/followage")) {
+            if (exchange.getRequestURI().toString().startsWith("/commands/followage")) {
                 TokenHandle tokenHandle = NightbotCommandsWebServer.INSTANCE
                         .getTokenHandle(queryMap.get("moderator"), "moderator:read:followers");
                 if (tokenHandle != null) {
@@ -100,7 +100,7 @@ public class CommandsHandler implements HttpHandler {
 
                     HTTPUtils.throwError(exchange, response);
                 }
-            } else if (exchange.getRequestURI().toString().equals("/commands/quote")) {
+            } else if (exchange.getRequestURI().toString().startsWith("/commands/quote")) {
                 TokenHandle tokenHandle = NightbotCommandsWebServer.INSTANCE
                         .getTokenHandle(queryMap.get("moderator"), "moderator:read:followers");
                 if (tokenHandle != null) {
@@ -163,7 +163,7 @@ public class CommandsHandler implements HttpHandler {
 
                     HTTPUtils.throwError(exchange, response);
                 }
-            } else if (exchange.getRequestURI().toString().equals("/commands/addquote")) {
+            } else if (exchange.getRequestURI().toString().startsWith("/commands/addquote")) {
                 TokenHandle tokenHandle = NightbotCommandsWebServer.INSTANCE
                         .getTokenHandle(queryMap.get("moderator"), "moderator:read:followers");
                 if (tokenHandle != null) {
@@ -222,7 +222,7 @@ public class CommandsHandler implements HttpHandler {
 
                     HTTPUtils.throwError(exchange, response);
                 }
-            } else if (exchange.getRequestURI().toString().equals("/commands/delquote")) {
+            } else if (exchange.getRequestURI().toString().startsWith("/commands/delquote")) {
                 TokenHandle tokenHandle = NightbotCommandsWebServer.INSTANCE
                         .getTokenHandle(queryMap.get("moderator"), "moderator:read:followers");
                 if (tokenHandle != null) {
@@ -295,7 +295,7 @@ public class CommandsHandler implements HttpHandler {
 
                     HTTPUtils.throwError(exchange, response);
                 }
-            } else if (exchange.getRequestURI().toString().equals("/commands/quotes")) {
+            } else if (exchange.getRequestURI().toString().startsWith("/commands/quotes")) {
                 TokenHandle tokenHandle = NightbotCommandsWebServer.INSTANCE
                         .getTokenHandle(queryMap.get("moderator"), "moderator:read:followers");
                 if (tokenHandle != null) {
