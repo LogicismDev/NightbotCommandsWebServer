@@ -203,13 +203,13 @@ public class CommandsHandler implements HttpHandler {
 
                         NightbotCommandsWebServer.INSTANCE.getQuotesMap()
                                 .get(userArray.getJSONObject(0).getString("id"))
-                                .add(URLDecoder.decode(queryMap.get("text"), StandardCharsets.UTF_8));
+                                .add(URLDecoder.decode(queryMap.get("text"), "UTF-8"));
 
                         File quotesMapDatabase = new File("quotesMap.dat");
                         NightbotCommandsWebServer.INSTANCE.writeQuotesMap(quotesMapDatabase);
 
                         response = "<html><body>Added Quote: " +
-                                URLDecoder.decode(queryMap.get("text"), StandardCharsets.UTF_8) + "</body></html>";
+                                URLDecoder.decode(queryMap.get("text"), "UTF-8") + "</body></html>";
 
                         HTTPUtils.throwSuccessHTML(exchange, response);
                     } else {
