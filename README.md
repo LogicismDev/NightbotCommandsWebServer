@@ -16,7 +16,7 @@ An HTTP server coded in Java to provide and serve Twitch APIs to use in Nightbot
 
 ## How to Self-Host
 
-Download the [latest release](https://github.com/LogicismDev/TwitchOverlayServer/releases), edit the configuration (config.yml), and use the provided .bat or .sh file to run the server.
+Download the [latest release](https://github.com/LogicismDev/NightbotCommandsWebServer/releases), edit the configuration (config.yml), and use the provided .bat or .sh file to run the server.
 
 Please note that this requires the usage of Java 8 or higher to use the server.
 
