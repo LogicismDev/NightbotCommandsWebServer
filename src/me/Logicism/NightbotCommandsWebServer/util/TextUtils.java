@@ -21,23 +21,4 @@ public class TextUtils {
         return map;
     }
 
-    public static String generateHMAC(String algorithm, String data, String key) throws NoSuchAlgorithmException
-            , InvalidKeyException {
-        SecretKeySpec secretKeySpec = new SecretKeySpec(key.getBytes(), algorithm);
-        Mac mac = Mac.getInstance(algorithm);
-        mac.init(secretKeySpec);
-
-        return bytesToHex(mac.doFinal(data.getBytes()));
-    }
-
-    public static String bytesToHex(byte[] array) {
-        StringBuilder sb = new StringBuilder(array.length * 2);
-
-        for (byte b : array) {
-            sb.append(String.format("%02x", b));
-        }
-
-        return sb.toString();
-    }
-
 }
