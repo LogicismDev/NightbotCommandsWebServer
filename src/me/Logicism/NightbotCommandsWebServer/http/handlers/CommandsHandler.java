@@ -16,8 +16,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -71,34 +71,41 @@ public class CommandsHandler implements HttpHandler {
                                         .getJSONArray("data");
 
                         if (userArray.length() != 0) {
-                            DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-                            format.withZone(ZoneId.of("UTC"));
+                            if (userArray.getJSONObject(0).getString("user_login").equalsIgnoreCase(queryMap.get("username"))) {
+                                DateTimeFormatter format = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).withZone(ZoneId.of("UTC"));
 
-                            LocalDate date = LocalDate.parse(userArray.getJSONObject(0).getString("followed_at"));
-                            LocalDate nowDate = LocalDate.now();
+                                try {
+                                    LocalDateTime date = LocalDateTime.parse(userArray.getJSONObject(0).getString("followed_at"), format);
+                                    LocalDateTime nowDate = LocalDateTime.now();
 
-                            Period period = Period.between(date, nowDate).normalized();
+                                    Period period = Period.between(date.toLocalDate(), nowDate.toLocalDate()).normalized();
 
-                            response = "<html><body>@" + userArray.getJSONObject(0)
-                                    .getString("user_name") + " has been following for " + period.getYears() +
-                                    (period.getYears() == 1 ? "year" : "years") + " and " + period.getMonths() +
-                                    (period.getMonths() == 1 ? "month" : "months") + ", for a total of "
-                                    + period.getDays() + (period.getDays() == 1 ? " Day" : " Days") + "</body></html>";
+                                    response = "@" + userArray.getJSONObject(0)
+                                            .getString("user_name") + " has been following for " +
+                                            (period.getYears() == 1 ? "1 year, " : (period.getYears() > 0 ? period.getYears() + " years,  " : ""))  +
+                                            (period.getMonths() == 1 ? "1 month, " : (period.getMonths() > 0 ?  period.getMonths() + " months, " : "")) +
+                                            (period.getDays() == 1 ? " and 1 day" : period.getDays() > 0 ? " and " + period.getDays() + " days" : "") ;
+                                } catch (Exception e) {
+                                    response = "Exception Occurred!";
+                                    e.printStackTrace();
+                                }
+                            } else {
+                                response = "Unable to grab follower information, please try again!";
+                            }
                         } else {
-                            response = "<html><body>@" + userArray.getJSONObject(0) + " is not following" +
-                                    "the channel</body></html>";
+                            response = "@" + queryMap.get("username") + " is not following the channel";
                         }
 
                         HTTPUtils.throwSuccessHTML(exchange, response);
                     } else {
-                        String response = "<html><body>Cannot find that channel or username!</body></html>";
+                        String response = "Cannot find that channel or username! Please retry your query or check your spelling!";
 
-                        HTTPUtils.throwError(exchange, response);
+                        HTTPUtils.throwSuccessHTML(exchange, response);
                     }
                 } else {
-                    String response = "<html><body>Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!</body></html>";
+                    String response = "Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!";
 
-                    HTTPUtils.throwError(exchange, response);
+                    HTTPUtils.throwSuccessHTML(exchange, response);
                 }
             } else if (exchange.getRequestURI().toString().startsWith("/commands/quote")) {
                 TokenHandle tokenHandle = NightbotCommandsWebServer.INSTANCE
@@ -138,28 +145,33 @@ public class CommandsHandler implements HttpHandler {
                                 List<String> quotes = NightbotCommandsWebServer.INSTANCE.getQuotesMap()
                                         .get(userArray.getJSONObject(0).getString("id"));
 
-                                if (quotes.size() > Integer.parseInt(queryMap.get("index")) - 1 &&
-                                        Integer.parseInt(queryMap.get("index")) - 1 > -1) {
-                                    response = "<html><body>" + quotes.get(Integer.parseInt(queryMap.get("index")))
-                                            + "</body></html>";
+                                if (queryMap.containsKey("index")) {
+                                    if (quotes.size() > Integer.parseInt(queryMap.get("index")) - 1 &&
+                                            Integer.parseInt(queryMap.get("index")) - 1 > -1) {
+                                        response = quotes.get(Integer.parseInt(queryMap.get("index")))
+                                                ;
+                                    } else {
+                                        response = "No quote found under that number!";
+                                    }
                                 } else {
-                                    response = "<html><body>No quote found under that number!</body></html>";
+                                    response = quotes.get(new Random().nextInt(quotes.size()))
+                                            ;
                                 }
                             } catch (NumberFormatException e) {
-                                response = "<html><body>That is an invalid number!</body></html>";
+                                response = "That is an invalid number!";
                             }
                         } else {
-                            response = "<html><body>Channel does not have any quotes!</body></html>";
+                            response = "Channel does not have any quotes!";
                         }
 
                         HTTPUtils.throwSuccessHTML(exchange, response);
                     } else {
-                        String response = "<html><body>Cannot find that channel or username!</body></html>";
+                        String response = "Cannot find that channel or username!";
 
                         HTTPUtils.throwError(exchange, response);
                     }
                 } else {
-                    String response = "<html><body>Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!</body></html>";
+                    String response = "Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!";
 
                     HTTPUtils.throwError(exchange, response);
                 }
@@ -208,17 +220,17 @@ public class CommandsHandler implements HttpHandler {
                         File quotesMapDatabase = new File("quotesMap.dat");
                         NightbotCommandsWebServer.INSTANCE.writeQuotesMap(quotesMapDatabase);
 
-                        response = "<html><body>Added Quote: " +
-                                URLDecoder.decode(queryMap.get("text"), "UTF-8") + "</body></html>";
+                        response = "Added Quote: " +
+                                URLDecoder.decode(queryMap.get("text"), "UTF-8") ;
 
                         HTTPUtils.throwSuccessHTML(exchange, response);
                     } else {
-                        String response = "<html><body>Cannot find that channel or username!</body></html>";
+                        String response = "Cannot find that channel or username!";
 
                         HTTPUtils.throwError(exchange, response);
                     }
                 } else {
-                    String response = "<html><body>Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!</body></html>";
+                    String response = "Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!";
 
                     HTTPUtils.throwError(exchange, response);
                 }
@@ -262,7 +274,7 @@ public class CommandsHandler implements HttpHandler {
 
                         if (NightbotCommandsWebServer.INSTANCE.getQuotesMap()
                                 .get(userArray.getJSONObject(0).getString("id")).isEmpty()) {
-                            response = "<html><body>Channel does not have any quotes!</body></html>";
+                            response = "Channel does not have any quotes!";
                         } else {
                             if (NightbotCommandsWebServer.INSTANCE.getQuotesMap()
                                     .get(userArray.getJSONObject(0).getString("id")).size()
@@ -278,20 +290,20 @@ public class CommandsHandler implements HttpHandler {
                                 File quotesMapDatabase = new File("quotesMap.dat");
                                 NightbotCommandsWebServer.INSTANCE.writeQuotesMap(quotesMapDatabase);
 
-                                response = "<html><body>Removed Quote: " + quote + "</body></html>";
+                                response = "Removed Quote: " + quote ;
                             } else {
-                                response = "<html><body>Quote number does not exist</body></html>";
+                                response = "Quote number does not exist";
                             }
                         }
 
                         HTTPUtils.throwSuccessHTML(exchange, response);
                     } else {
-                        String response = "<html><body>Cannot find that channel or username!</body></html>";
+                        String response = "Cannot find that channel or username!";
 
                         HTTPUtils.throwError(exchange, response);
                     }
                 } else {
-                    String response = "<html><body>Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!</body></html>";
+                    String response = "Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!";
 
                     HTTPUtils.throwError(exchange, response);
                 }
@@ -337,29 +349,29 @@ public class CommandsHandler implements HttpHandler {
                                 formattedQuotes.add("#" + i + " - " + s);
                             }
                             
-                            response = "<html><body>" + StringUtils.join(formattedQuotes, ", ") + "</body></html>";
+                            response = StringUtils.join(formattedQuotes, ", ") ;
                         } else {
-                            response = "<html><body>Channel does not have any quotes!</body></html>";
+                            response = "Channel does not have any quotes!";
                         }
 
                         HTTPUtils.throwSuccessHTML(exchange, response);
                     } else {
-                        String response = "<html><body>Cannot find that channel or username!</body></html>";
+                        String response = "Cannot find that channel or username!";
 
                         HTTPUtils.throwError(exchange, response);
                     }
                 } else {
-                    String response = "<html><body>Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!</body></html>";
+                    String response = "Moderator is unauthenticated! Head to https://nightbot.logicism.tv/ to Authenticate!";
 
                     HTTPUtils.throwError(exchange, response);
                 }
             } else {
-                String response = "<html><body>Command is unidentified!</body></html>";
+                String response = "Command is unidentified!";
 
                 HTTPUtils.throwError(exchange, response);
             }
         } else {
-            String response = "<html><body>Query requires 'channel' and 'moderator'</body></html>";
+            String response = "Query requires 'channel' and 'moderator'";
 
             HTTPUtils.throwError(exchange, response);
         }

@@ -33,19 +33,6 @@ public class HTTPUtils {
         return new File(query);
     }
 
-    public static void throwSuccessChallenge(HttpExchange exchange, String challenge) throws IOException {
-        if (challenge != null) {
-            OutputStream os = exchange.getResponseBody();
-
-            exchange.sendResponseHeaders(200, challenge.length());
-            os.write(challenge.getBytes());
-            os.flush();
-            os.close();
-        } else {
-            throwError(exchange, null);
-        }
-    }
-
     public static void throwSuccessFile(HttpExchange exchange, File file) throws IOException {
         if (file != null && file.exists()) {
             OutputStream os = exchange.getResponseBody();
@@ -79,14 +66,6 @@ public class HTTPUtils {
 
         exchange.sendResponseHeaders(200, html.length());
         os.write(html.getBytes());
-        os.flush();
-        os.close();
-    }
-
-    public static void throwSuccess(HttpExchange exchange) throws IOException {
-        OutputStream os = exchange.getResponseBody();
-
-        exchange.sendResponseHeaders(204, -1);
         os.flush();
         os.close();
     }
